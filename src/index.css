@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  body {
+    @apply bg-[#12112A] text-slate-200 font-sans;
+    min-height: 100vh;
+  }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-purple-800/60 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-purple-600/80; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-purple-600 hover:bg-purple-500 text-white font-semibold px-5 py-2 rounded-xl
+           transition-all duration-200 shadow-lg shadow-purple-900/40 active:scale-95 text-sm;
+  }
+  .btn-secondary {
+    @apply bg-white/5 hover:bg-white/10 text-slate-300 font-medium px-4 py-2 rounded-xl
+           border border-white/10 hover:border-purple-500/50 transition-all duration-200 active:scale-95 text-sm;
+  }
+  .input-field {
+    @apply w-full bg-white/5 border border-white/10 focus:border-purple-500/70
+           text-slate-200 placeholder-slate-500 rounded-xl px-4 py-2.5 outline-none
+           transition-all duration-200 text-sm;
+  }
+  .card {
+    @apply bg-[#1C1A3A] border border-white/10 rounded-2xl overflow-hidden
+           hover:border-purple-500/40 transition-all duration-300
+           hover:shadow-xl hover:shadow-purple-900/20 hover:-translate-y-0.5;
+  }
+  .badge-nl {
+    @apply bg-pink-500/20 text-pink-300 border border-pink-500/30
+           text-[10px] font-bold px-2 py-0.5 rounded-md tracking-wide;
+  }
+  .badge-bl {
+    @apply bg-blue-500/20 text-blue-300 border border-blue-500/30
+           text-[10px] font-bold px-2 py-0.5 rounded-md tracking-wide;
+  }
+  .badge-gl {
+    @apply bg-purple-500/20 text-purple-300 border border-purple-500/30
+           text-[10px] font-bold px-2 py-0.5 rounded-md tracking-wide;
+  }
+  .badge-ongoing {
+    @apply bg-emerald-500/20 text-emerald-400 border border-emerald-500/30
+           text-[10px] font-bold px-2 py-0.5 rounded-md tracking-widest uppercase;
+  }
+  .badge-completed {
+    @apply bg-slate-500/20 text-slate-400 border border-slate-500/30
+           text-[10px] font-bold px-2 py-0.5 rounded-md tracking-widest uppercase;
+  }
+}
