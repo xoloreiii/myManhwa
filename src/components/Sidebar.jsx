@@ -32,13 +32,27 @@ const NAV_ITEMS = [
 export default function Sidebar({ activePage, onNavigate }) {
   const { user, isAdmin, logout } = useAuth()
   const [profileOpen, setProfileOpen] = useState(false)
+  const [anchorRect, setAnchorRect] = useState(null)
   const profileRef = useRef(null)
+  const triggerRef = useRef(null)
 
   useEffect(() => {
-    const h = (e) => { if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false) }
+    const h = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target) &&
+          !(e.target.closest && e.target.closest('[data-profile-panel]'))) {
+        setProfileOpen(false)
+      }
+    }
     document.addEventListener('mousedown', h)
     return () => document.removeEventListener('mousedown', h)
   }, [])
+
+  const toggleProfile = () => {
+    if (!profileOpen && triggerRef.current) {
+      setAnchorRect(triggerRef.current.getBoundingClientRect())
+    }
+    setProfileOpen(o => !o)
+  }
 
   return (
     <aside
@@ -74,10 +88,11 @@ export default function Sidebar({ activePage, onNavigate }) {
       {/* Profile bottom */}
       <div className="mt-auto pt-5 relative" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }} ref={profileRef}>
         <button
-          onClick={() => setProfileOpen(o => !o)}
+          ref={triggerRef}
+          onClick={toggleProfile}
           className="flex items-center gap-2.5 w-full group hover:opacity-90 transition-opacity"
         >
-          <UserAvatar user={user} size={36} />
+          <UserAvatar user={user} size={36} isAdmin={isAdmin} />
           <div className="text-left flex-1 min-w-0">
             <div className="text-[13px] font-semibold text-slate-100 truncate">{user?.username ?? 'Guest'}</div>
             <div className="text-[11px] text-slate-500 flex items-center gap-1">
@@ -92,23 +107,32 @@ export default function Sidebar({ activePage, onNavigate }) {
           </svg>
         </button>
 
-        {profileOpen && (
-          <ProfilePanel onClose={() => setProfileOpen(false)} onLogout={() => { setProfileOpen(false); logout() }} />
+        {profileOpen && anchorRect && (
+          <ProfilePanel
+            anchorRect={anchorRect}
+            onClose={() => setProfileOpen(false)}
+            onLogout={() => { setProfileOpen(false); logout() }}
+          />
         )}
       </div>
     </aside>
   )
 }
 
-export function UserAvatar({ user, size = 36 }) {
-  const profileData = (() => {
-    try { return JSON.parse(localStorage.getItem('admin_profile') ?? '{}') } catch { return {} }
-  })()
-  const src     = profileData?.avatar_url
-  const initial = (user?.username ?? 'G')[0].toUpperCase()
+export function UserAvatar({ user, size = 36, isAdmin = false }) {
+  // Guests never see the admin's saved photo — only admin gets the stored avatar.
+  const src = isAdmin
+    ? (() => {
+        try { return JSON.parse(localStorage.getItem('admin_profile') ?? '{}')?.avatar_url } catch { return null }
+      })()
+    : null
+  const initial = (user?.username ?? (isAdmin ? 'A' : 'G'))[0].toUpperCase()
   return (
     <div className="rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center font-bold"
-      style={{ width: size, height: size, background: 'linear-gradient(135deg, #e8b9d8, #8a6ae0)', fontSize: size * 0.38 }}>
+      style={{
+        width: size, height: size, fontSize: size * 0.38,
+        background: isAdmin ? 'linear-gradient(135deg, #e8b9d8, #8a6ae0)' : 'linear-gradient(135deg, #6a8ae0, #4960c4)',
+      }}>
       {src
         ? <img src={src} alt="" className="w-full h-full object-cover" />
         : <span className="text-white">{initial}</span>

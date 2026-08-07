@@ -152,7 +152,7 @@ export default function HomePage({ onNavigate }) {
 
         {/* quick nav buttons — both start transparent, color on hover only */}
         <div className="flex gap-3 mt-6 relative">
-          <HoverButton onClick={() => onNavigate('manhwa')} primary>Browse Manhwa</HoverButton>
+          <HoverButton onClick={() => onNavigate('manhwa')}>Browse Manhwa</HoverButton>
           <HoverButton onClick={() => onNavigate('manga')}>Browse Manga</HoverButton>
         </div>
       </div>
@@ -227,20 +227,16 @@ function BreakdownCard({ title, data, onNavigate }) {  return (
   )
 }
 
-// Both buttons start with no fill — only show color on hover
-function HoverButton({ children, onClick, primary }) {
+// Both buttons start with no fill — only show color on hover (same purple for both)
+function HoverButton({ children, onClick }) {
   const [hovered, setHovered] = useState(false)
 
   const baseStyle = {
     background: hovered
-      ? primary
-        ? 'linear-gradient(135deg, #8a6ae0, #6a49c4)'
-        : 'rgba(185,166,245,0.15)'
+      ? 'linear-gradient(135deg, #8a6ae0, #6a49c4)'
       : 'rgba(255,255,255,0.05)',
     border: hovered
-      ? primary
-        ? '1px solid rgba(138,106,224,0.6)'
-        : '1px solid rgba(185,166,245,0.45)'
+      ? '1px solid rgba(138,106,224,0.6)'
       : '1px solid rgba(255,255,255,0.12)',
     transition: 'all 0.2s ease',
   }

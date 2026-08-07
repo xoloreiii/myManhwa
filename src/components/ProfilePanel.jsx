@@ -1,7 +1,11 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useAuth } from '../lib/authContext'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
+
+const PANEL_WIDTH = 288 // matches w-72
+const MARGIN = 12
 
 const LS_KEY = 'admin_profile'
 
@@ -12,7 +16,7 @@ function saveProfile(data) {
   localStorage.setItem(LS_KEY, JSON.stringify(data))
 }
 
-export default function ProfilePanel({ onClose, onLogout }) {
+export default function ProfilePanel({ onClose, onLogout, anchorRect }) {
   const { user, isAdmin } = useAuth()
   const [tab, setTab]     = useState(isAdmin ? 'profile' : 'info') // admin sees profile/visitors; guest sees info only
   const [editing, setEditing] = useState(false)
@@ -21,6 +25,35 @@ export default function ProfilePanel({ onClose, onLogout }) {
   const [visitors, setVisitors] = useState([])
   const [visLoading, setVisLoading] = useState(false)
   const fileRef = useRef(null)
+  const panelRef = useRef(null)
+  const [style, setStyle] = useState({ visibility: 'hidden' })
+
+  // Position the panel relative to the viewport (not clipped by sidebar's
+  // sticky/overflow context) and keep it fully on-screen on any window size.
+  useLayoutEffect(() => {
+    const place = () => {
+      if (!anchorRect) return
+      const vw = window.innerWidth
+      const vh = window.innerHeight
+      const panelHeight = panelRef.current?.offsetHeight ?? 400
+
+      let left = anchorRect.left
+      left = Math.min(left, vw - PANEL_WIDTH - MARGIN)
+      left = Math.max(left, MARGIN)
+
+      let top = anchorRect.top - panelHeight - 12
+      if (top < MARGIN) top = Math.min(anchorRect.bottom + 12, vh - panelHeight - MARGIN)
+
+      setStyle({ position: 'fixed', top, left, width: PANEL_WIDTH, visibility: 'visible' })
+    }
+    place()
+    window.addEventListener('resize', place)
+    window.addEventListener('scroll', place, true)
+    return () => {
+      window.removeEventListener('resize', place)
+      window.removeEventListener('scroll', place, true)
+    }
+  }, [anchorRect])
 
   useEffect(() => {
     if (tab === 'visitors' && isAdmin) fetchVisitors()
@@ -58,9 +91,10 @@ export default function ProfilePanel({ onClose, onLogout }) {
     return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
   }
 
-  return (
-    <div className="absolute bottom-full left-0 mb-3 w-72 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden z-50"
-      style={{ background: '#1e1a38', border: '1px solid rgba(185,166,245,0.2)' }}>
+  return createPortal(
+    <div data-profile-panel ref={panelRef}
+      className="rounded-2xl shadow-2xl shadow-black/60 overflow-hidden z-50"
+      style={{ ...style, background: '#1e1a38', border: '1px solid rgba(185,166,245,0.2)' }}>
       <div className="h-0.5" style={{ background: 'linear-gradient(90deg,#8a6ae0,#b9a6f5,#6a49c4)' }} />
 
       {/* Tabs (admin only) */}
@@ -267,7 +301,8 @@ export default function ProfilePanel({ onClose, onLogout }) {
           )}
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   )
 }
 
