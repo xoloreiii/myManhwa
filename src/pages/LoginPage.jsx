@@ -64,40 +64,27 @@ export default function LoginPage() {
                 <h2 className="text-[17px] font-bold text-white text-center mb-1">Welcome back</h2>
                 <p className="text-[13px] text-slate-400 text-center mb-8">How would you like to continue?</p>
                 <div className="space-y-3">
-                  <button onClick={() => { setMode('admin'); setError('') }}
-                    className="w-full flex items-center gap-4 px-5 py-4 rounded-xl transition-all hover:brightness-110 active:scale-[0.98] group"
-                    style={{ background: 'linear-gradient(135deg, #8a6ae0, #6a49c4)', border: '1px solid rgba(185,166,245,0.2)' }}>
-                    <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <RoleButton
+                    onClick={() => { setMode('admin'); setError('') }}
+                    title="Admin"
+                    subtitle="Full access — edit & manage collection"
+                    icon={
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                       </svg>
-                    </div>
-                    <div className="text-left">
-                      <div className="text-sm font-bold text-white">Admin</div>
-                      <div className="text-xs text-purple-200/70">Full access — edit & manage collection</div>
-                    </div>
-                    <svg className="w-4 h-4 text-purple-200/50 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
+                    }
+                  />
 
-                  <button onClick={() => { setMode('guest'); setError('') }}
-                    className="w-full flex items-center gap-4 px-5 py-4 rounded-xl transition-all hover:bg-white/8 active:scale-[0.98]"
-                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ background: 'rgba(255,255,255,0.07)' }}>
-                      <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <RoleButton
+                    onClick={() => { setMode('guest'); setError('') }}
+                    title="Guest"
+                    subtitle="Browse only — view-only access"
+                    icon={
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
-                    </div>
-                    <div className="text-left">
-                      <div className="text-sm font-semibold text-slate-200">Guest</div>
-                      <div className="text-xs text-slate-500">Browse only — view-only access</div>
-                    </div>
-                    <svg className="w-4 h-4 text-slate-600 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
+                    }
+                  />
                 </div>
               </>
             )}
@@ -195,5 +182,41 @@ export default function LoginPage() {
         .animate-shake{animation:shake 0.45s ease}
       `}</style>
     </div>
+  )
+}
+
+// Starts transparent — background, icon tint, text, and arrow only turn purple on hover.
+function RoleButton({ icon, title, subtitle, onClick }) {
+  const [hovered, setHovered] = useState(false)
+
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="w-full flex items-center gap-4 px-5 py-4 rounded-xl active:scale-[0.98]"
+      style={{
+        background: hovered ? 'linear-gradient(135deg, #8a6ae0, #6a49c4)' : 'rgba(255,255,255,0.04)',
+        border: hovered ? '1px solid rgba(185,166,245,0.35)' : '1px solid rgba(255,255,255,0.08)',
+        transition: 'all 0.2s ease',
+      }}
+    >
+      <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+        style={{
+          background: hovered ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.07)',
+          color: hovered ? '#fff' : '#cbd5e1',
+          transition: 'all 0.2s ease',
+        }}>
+        {icon}
+      </div>
+      <div className="text-left">
+        <div className="text-sm font-bold transition-colors" style={{ color: hovered ? '#fff' : '#e2e8f0' }}>{title}</div>
+        <div className="text-xs transition-colors" style={{ color: hovered ? 'rgba(233,213,255,0.7)' : '#64748b' }}>{subtitle}</div>
+      </div>
+      <svg className="w-4 h-4 ml-auto transition-colors" style={{ color: hovered ? 'rgba(233,213,255,0.6)' : '#475569' }}
+        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
   )
 }
