@@ -30,8 +30,9 @@
   }
   .card {
     @apply bg-[#1C1A3A] border border-white/10 rounded-2xl overflow-hidden
-           hover:border-purple-500/40 transition-all duration-300
-           hover:shadow-xl hover:shadow-purple-900/20 hover:-translate-y-0.5;
+           transition-all duration-300 cursor-pointer
+           hover:border-purple-400/80 hover:-translate-y-2
+           hover:shadow-[0_8px_40px_rgba(138,106,224,0.55),0_0_0_1px_rgba(185,166,245,0.25)];
   }
   .badge-nl {
     @apply bg-pink-500/20 text-pink-300 border border-pink-500/30

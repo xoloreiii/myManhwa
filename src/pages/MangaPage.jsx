@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useMature } from '../lib/matureContext'
 import { useAuth } from '../lib/authContext'
 import ManhwaCard from '../components/ManhwaCard'
-import ManhwaForm from '../components/ManhwaForm'
+import MangaForm from '../components/MangaForm'
 import MatureGate from '../components/MatureGate'
 import { PRESET_GENRES } from '../components/ManhwaForm'
 
@@ -20,8 +20,6 @@ const BASIC_SORTS = [
   { value: 'az',     label: 'A → Z'  },
   { value: 'za',     label: 'Z → A'  },
 ]
-
-const FLAG_ORDER = { 'Green Flag': 0, 'Yellow Flag': 1, 'Red Flag': 2, 'Black Flag': 3 }
 
 const STATUS_META = [
   { value: 'ongoing',      label: 'Ongoing',      color: 'text-emerald-400' },
@@ -53,22 +51,17 @@ function FilterDropdown({ label, icon, badge, children, align = 'left' }) {
           ${badge ? 'bg-purple-600/30 border border-purple-500/60 text-purple-200' : 'text-slate-400 hover:text-slate-200'}`}
         style={!badge ? { background: '#1c1630', border: '1px solid rgba(255,255,255,0.07)' } : {}}
       >
-        {icon}
-        {label}
+        {icon}{label}
         {badge != null && badge > 0 && (
-          <span className="bg-purple-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">
-            {badge}
-          </span>
+          <span className="bg-purple-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none">{badge}</span>
         )}
         <svg className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       {open && (
-        <div
-          className={`absolute top-11 z-40 rounded-xl shadow-2xl shadow-black/60 ${align === 'right' ? 'right-0' : 'left-0'}`}
-          style={{ background: '#1e1a38', border: '1px solid rgba(185,166,245,0.25)', minWidth: '200px' }}
-        >
+        <div className={`absolute top-11 z-40 rounded-xl shadow-2xl shadow-black/60 ${align === 'right' ? 'right-0' : 'left-0'}`}
+          style={{ background: '#1e1a38', border: '1px solid rgba(185,166,245,0.25)', minWidth: '200px' }}>
           {children}
         </div>
       )}
@@ -85,12 +78,10 @@ function ScrollToTop() {
   }, [])
   if (!visible) return null
   return (
-    <button
-      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+    <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       className="fixed bottom-8 right-8 z-50 w-11 h-11 rounded-2xl flex items-center justify-center shadow-xl shadow-black/40 transition-all hover:scale-110 active:scale-95"
       style={{ background: 'linear-gradient(135deg, #8a6ae0, #6a49c4)', border: '1px solid rgba(185,166,245,0.3)' }}
-      aria-label="Scroll to top"
-    >
+      aria-label="Scroll to top">
       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" />
       </svg>
@@ -98,66 +89,56 @@ function ScrollToTop() {
   )
 }
 
-export default function ManhwaPage({ onNavigate }) {
+export default function MangaPage({ onNavigate }) {
   const { unlocked, decided } = useMature()
   const { isAdmin } = useAuth()
   const [showGate, setShowGate] = useState(false)
-
-  // Gate only applies to guests
   const gateActive = !isAdmin
 
-  const [manhwaList, setManhwaList]     = useState([])
-  const [loading, setLoading]           = useState(true)
-  const [activeTab, setActiveTab]       = useState('all')
-  const [search, setSearch]             = useState('')
-  const [sortBy, setSortBy]             = useState('newest')
-  const [sortRating, setSortRating]     = useState(null)
-  const [sortFlag, setSortFlag]         = useState(null)
-  const [sortStatus, setSortStatus]     = useState(null)
-  const [filterGenres, setFilterGenres] = useState([])
-  const [formOpen, setFormOpen]         = useState(false)
-  const [editingManhwa, setEditingManhwa] = useState(null)
+  const [mangaList, setMangaList]         = useState([])
+  const [loading, setLoading]             = useState(true)
+  const [activeTab, setActiveTab]         = useState('all')
+  const [search, setSearch]               = useState('')
+  const [sortBy, setSortBy]               = useState('newest')
+  const [sortRating, setSortRating]       = useState(null)
+  const [sortFlag, setSortFlag]           = useState(null)
+  const [sortStatus, setSortStatus]       = useState(null)
+  const [filterGenres, setFilterGenres]   = useState([])
+  const [formOpen, setFormOpen]           = useState(false)
+  const [editingManga, setEditingManga]   = useState(null)
 
-  useEffect(() => { fetchManhwa() }, [])
+  useEffect(() => { fetchManga() }, [])
+  useEffect(() => { if (gateActive && !decided) setShowGate(true) }, [decided, gateActive])
+  useEffect(() => { if (gateActive && activeTab === 'BL' && !unlocked) setShowGate(true) }, [activeTab, unlocked, gateActive])
 
-  // Show gate on first visit if not yet decided (guests only)
-  useEffect(() => {
-    if (gateActive && !decided) setShowGate(true)
-  }, [decided, gateActive])
-
-  // If user goes to BL tab while not unlocked (guests only)
-  useEffect(() => {
-    if (gateActive && activeTab === 'BL' && !unlocked) setShowGate(true)
-  }, [activeTab, unlocked, gateActive])
-
-  const fetchManhwa = async () => {
+  const fetchManga = async () => {
     setLoading(true)
     try {
-      const { data, error } = await supabase.from('manhwa').select('*').order('created_at', { ascending: false })
+      const { data, error } = await supabase.from('manga').select('*').order('created_at', { ascending: false })
       if (error) throw error
-      setManhwaList(data ?? [])
+      setMangaList(data ?? [])
     } catch (err) {
       console.error(err)
       toast.error('Failed to load data: ' + (err.message ?? 'Unknown error'))
     } finally { setLoading(false) }
   }
 
-  const handleDeleted     = (id) => setManhwaList(prev => prev.filter(m => m.id !== id))
-  const handleFormSuccess = () => { setFormOpen(false); setEditingManhwa(null); fetchManhwa() }
-  const openAddForm       = () => { setEditingManhwa(null); setFormOpen(true) }
-  const openEditForm      = (m) => { setEditingManhwa(m); setFormOpen(true) }
+  const handleDeleted     = (id) => setMangaList(prev => prev.filter(m => m.id !== id))
+  const handleFormSuccess = () => { setFormOpen(false); setEditingManga(null); fetchManga() }
+  const openAddForm       = () => { setEditingManga(null); setFormOpen(true) }
+  const openEditForm      = (m) => { setEditingManga(m); setFormOpen(true) }
   const toggleFilterGenre = (g) =>
     setFilterGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g])
 
   const tabCount = useMemo(() => ({
-    all: manhwaList.length,
-    NL:  manhwaList.filter(m => m.category === 'NL').length,
-    BL:  manhwaList.filter(m => m.category === 'BL').length,
-    GL:  manhwaList.filter(m => m.category === 'GL').length,
-  }), [manhwaList])
+    all: mangaList.length,
+    NL:  mangaList.filter(m => m.category === 'NL').length,
+    BL:  mangaList.filter(m => m.category === 'BL').length,
+    GL:  mangaList.filter(m => m.category === 'GL').length,
+  }), [mangaList])
 
   const filtered = useMemo(() => {
-    let list = manhwaList.filter(m => {
+    let list = mangaList.filter(m => {
       const matchTab    = activeTab === 'all' || m.category === activeTab
       const matchSearch = m.title.toLowerCase().includes(search.toLowerCase())
       const mGenres     = Array.isArray(m.genres) ? m.genres : (m.genre ? [m.genre] : [])
@@ -170,19 +151,17 @@ export default function ManhwaPage({ onNavigate }) {
     if (sortBy === 'az') list = [...list].sort((a, b) => a.title.localeCompare(b.title))
     else if (sortBy === 'za') list = [...list].sort((a, b) => b.title.localeCompare(a.title))
     return list
-  }, [manhwaList, activeTab, search, sortBy, filterGenres, sortRating, sortFlag, sortStatus])
+  }, [mangaList, activeTab, search, sortBy, filterGenres, sortRating, sortFlag, sortStatus])
 
-  const activeTabData      = TABS.find(t => t.value === activeTab)
-  const activeFilterCount  = (sortRating ? 1 : 0) + (sortFlag ? 1 : 0) + (sortStatus ? 1 : 0)
-
-  // BL tab with no unlock → empty + show info
-  const isBLLockedTab = gateActive && activeTab === 'BL' && !unlocked
+  const activeTabData     = TABS.find(t => t.value === activeTab)
+  const activeFilterCount = (sortRating ? 1 : 0) + (sortFlag ? 1 : 0) + (sortStatus ? 1 : 0)
+  const isBLLockedTab     = gateActive && activeTab === 'BL' && !unlocked
 
   return (
     <main className="flex-1 px-10 py-8 min-h-screen overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="text-2xl font-semibold mb-1">Manhwa Collection</h1>
+            <h1 className="text-2xl font-semibold mb-1">Manga Collection</h1>
             <p className="text-[13px] text-slate-400">
               {activeTabData?.icon && <span className="mr-1">{activeTabData.icon}</span>}
               <span className="font-semibold text-slate-300">{tabCount[activeTab]}</span>
@@ -194,10 +173,11 @@ export default function ManhwaPage({ onNavigate }) {
             <button onClick={openAddForm}
               className="flex items-center gap-2 text-[#f6f2ff] px-[18px] py-[11px] rounded-[11px] text-[13px] font-semibold hover:brightness-110 transition-all"
               style={{ background: 'linear-gradient(135deg, #8a6ae0, #6a49c4)' }}>
-              + Add Manhwa
+              + Add Manga
             </button>
           )}
         </div>
+
         {/* Tabs + Controls */}
         <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
           <div className="flex gap-2 p-1.5 rounded-xl"
@@ -205,8 +185,7 @@ export default function ManhwaPage({ onNavigate }) {
             {TABS.map(tab => (
               <button key={tab.value} onClick={() => setActiveTab(tab.value)}
                 className={`px-4 py-2 rounded-lg text-[12.5px] font-semibold transition-colors ${
-                  activeTab === tab.value ? 'bg-[#2c2348] text-[#b9a6f5]' : 'text-slate-500 hover:text-slate-300'
-                }`}>
+                  activeTab === tab.value ? 'bg-[#2c2348] text-[#b9a6f5]' : 'text-slate-500 hover:text-slate-300'}`}>
                 {tab.label}
                 <span className={`ml-1.5 text-[11px] ${activeTab === tab.value ? 'text-purple-400/70' : 'text-slate-600'}`}>
                   {tabCount[tab.value]}
@@ -216,9 +195,8 @@ export default function ManhwaPage({ onNavigate }) {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Genre filter */}
             <FilterDropdown label="Genre" badge={filterGenres.length}
-              icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h10M7 12h6m-6 5h4" /></svg>}>
+              icon={<svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h10M7 12h6m-6 5h4" /></svg>}>
               <div className="p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Filter Genre</span>
@@ -240,9 +218,8 @@ export default function ManhwaPage({ onNavigate }) {
               </div>
             </FilterDropdown>
 
-            {/* Sort */}
             <FilterDropdown label="Sort" badge={activeFilterCount} align="right"
-              icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" /></svg>}>
+              icon={<svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" /></svg>}>
               <div className="p-3 w-56">
                 <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Order by</p>
                 <div className="space-y-0.5 mb-3">
@@ -260,7 +237,7 @@ export default function ManhwaPage({ onNavigate }) {
                 <div className="flex flex-wrap gap-1 mb-3">
                   {[5,4,3,2,1].map(r => (
                     <button key={r} onClick={() => setSortRating(sortRating === r ? null : r)}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold transition-all border ${
+                      className={`px-2 py-1 rounded-lg text-[11px] font-semibold transition-all border ${
                         sortRating === r ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-300'
                           : 'border-white/10 text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}>
                       {'★'.repeat(r)}
@@ -307,19 +284,17 @@ export default function ManhwaPage({ onNavigate }) {
               </div>
             </FilterDropdown>
 
-            {/* Search */}
             <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl w-52 text-slate-500 text-sm"
               style={{ background: '#1c1630', border: '1px solid rgba(255,255,255,0.07)' }}>
               <span>⌕</span>
               <input type="text" value={search} onChange={e => setSearch(e.target.value)}
                 placeholder="Search title..."
                 className="bg-transparent outline-none w-full placeholder:text-slate-500 text-slate-200" />
-              {search && <button onClick={() => setSearch('')} className="text-slate-600 hover:text-slate-400 transition-colors">✕</button>}
+              {search && <button onClick={() => setSearch('')} className="text-slate-600 hover:text-slate-400">✕</button>}
             </div>
           </div>
         </div>
 
-        {/* Active filter chips */}
         {(filterGenres.length > 0 || sortRating || sortFlag || sortStatus) && (
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             <span className="text-xs text-slate-600">Active:</span>
@@ -330,7 +305,6 @@ export default function ManhwaPage({ onNavigate }) {
           </div>
         )}
 
-        {/* BL locked empty state */}
         {isBLLockedTab ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl"
@@ -358,17 +332,17 @@ export default function ManhwaPage({ onNavigate }) {
           <div className="text-slate-500 text-sm py-16 text-center">
             {search || filterGenres.length > 0 || sortRating || sortFlag || sortStatus
               ? 'No results found. Try adjusting the filters.'
-              : 'No manhwa yet. Click "+ Add Manhwa" to start your collection!'}
+              : 'No manga yet. Click "+ Add Manga" to start your collection!'}
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-[18px]">
-            {filtered.map(manhwa => {
-              const isBL      = manhwa.category === 'BL'
+            {filtered.map(manga => {
+              const isBL      = manga.category === 'BL'
               const needsBlur = gateActive && isBL && !unlocked && activeTab === 'all'
               return (
                 <ManhwaCard
-                  key={manhwa.id}
-                  manhwa={manhwa}
+                  key={manga.id}
+                  manhwa={manga}
                   onEdit={isAdmin ? openEditForm : undefined}
                   onDeleted={isAdmin ? handleDeleted : undefined}
                   blurred={needsBlur}
@@ -379,15 +353,14 @@ export default function ManhwaPage({ onNavigate }) {
           </div>
         )}
       {formOpen && (
-        <ManhwaForm
-          manhwa={editingManhwa}
-          onClose={() => { setFormOpen(false); setEditingManhwa(null) }}
+        <MangaForm
+          manga={editingManga}
+          onClose={() => { setFormOpen(false); setEditingManga(null) }}
           onSuccess={handleFormSuccess}
         />
       )}
 
       {showGate && <MatureGate onClose={() => setShowGate(false)} />}
-
       <ScrollToTop />
     </main>
   )

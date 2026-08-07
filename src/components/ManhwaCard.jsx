@@ -42,7 +42,7 @@ function StarDisplay({ value }) {
   )
 }
 
-export default function ManhwaCard({ manhwa, onEdit, onDeleted }) {
+export default function ManhwaCard({ manhwa, onEdit, onDeleted, blurred = false, onBlurClick }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const menuRef = useRef(null)
@@ -75,6 +75,42 @@ export default function ManhwaCard({ manhwa, onEdit, onDeleted }) {
   const genreList = Array.isArray(manhwa.genres) && manhwa.genres.length > 0
     ? manhwa.genres : (manhwa.genre ? [manhwa.genre] : [])
 
+  if (blurred) {
+    return (
+      <div
+        className="card flex flex-col cursor-pointer select-none"
+        onClick={onBlurClick}
+      >
+        <div className="relative aspect-[2/3] bg-[#1a1835] overflow-hidden">
+          {/* blurred poster */}
+          {manhwa.poster_url
+            ? <img src={manhwa.poster_url} alt="" className="w-full h-full object-cover blur-xl scale-110" />
+            : <div className="w-full h-full" style={{ background: '#1a1835' }} />
+          }
+          {/* lock overlay */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2"
+            style={{ background: 'rgba(10,8,24,0.65)' }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+              style={{ background: 'rgba(138,106,224,0.25)', border: '1px solid rgba(185,166,245,0.3)' }}>
+              🔒
+            </div>
+            <p className="text-[11px] text-slate-400 font-medium text-center px-2 leading-tight">
+              Enter code<br />to view
+            </p>
+          </div>
+        </div>
+        <div className="p-3 space-y-1.5">
+          {/* blurred title */}
+          <div className="h-3 rounded-md w-4/5 mt-1" style={{ background: 'rgba(255,255,255,0.07)' }} />
+          <div className="h-3 rounded-md w-2/5"       style={{ background: 'rgba(255,255,255,0.05)' }} />
+          <div className="flex gap-1.5 pt-1">
+            <span className="badge-bl">BL</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="card flex flex-col">
       {/* Poster */}
@@ -90,7 +126,8 @@ export default function ManhwaCard({ manhwa, onEdit, onDeleted }) {
             <span className="text-xs">No Poster</span>
           </div>
         )}
-        {/* Context menu button */}
+        {/* Context menu — only shown when edit/delete available */}
+        {(onEdit || onDeleted) && (
         <div className="absolute top-2 right-2" ref={menuRef}>
           <button
             onClick={() => setMenuOpen(o => !o)}
@@ -127,14 +164,17 @@ export default function ManhwaCard({ manhwa, onEdit, onDeleted }) {
             </div>
           )}
         </div>
+        )}
       </div>
 
       {/* Info */}
-      <div className="p-3 space-y-1.5 flex flex-col flex-1">
-        {/* Status badge */}
-        <span className={STATUS_BADGE[status] ?? 'badge-ongoing'}>
-          {STATUS_LABEL[status] ?? 'ONGOING'}
-        </span>
+      <div className="p-3 flex flex-col flex-1 gap-1">
+        {/* Status badge — full width block */}
+        <div>
+          <span className={`${STATUS_BADGE[status] ?? 'badge-ongoing'} block w-full text-center`}>
+            {STATUS_LABEL[status] ?? 'ONGOING'}
+          </span>
+        </div>
 
         {/* Title */}
         <h3 className="font-semibold text-slate-100 text-[13px] leading-snug line-clamp-2 pt-0.5 min-h-[2.2rem]">
@@ -147,10 +187,10 @@ export default function ManhwaCard({ manhwa, onEdit, onDeleted }) {
           {status === 'completed' ? ' (Finished)' : ''}
         </p>
 
-        {/* Rating stars */}
+        {/* Rating */}
         <StarDisplay value={manhwa.rating} />
 
-        {/* Category + genre tags */}
+        {/* Category + genres */}
         <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
           <span className={CATEGORY_BADGE[manhwa.category]}>{manhwa.category}</span>
           {genreList.slice(0, 2).map(g => (
