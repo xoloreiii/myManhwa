@@ -49,7 +49,7 @@ export default function LoginPage() {
             style={{ background: 'linear-gradient(135deg, #b9a6f5, #6a49c4)' }}>
             屋
           </div>
-          <h1 className="text-2xl font-bold text-white">myManhwa</h1>
+          <h1 className="text-2xl font-bold text-white">myTsundoku</h1>
           <p className="text-sm text-slate-500 mt-1">Your digital reading shelf</p>
         </div>
 
@@ -185,7 +185,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-slate-700 mt-6">myManhwa — personal reading tracker</p>
+        <p className="text-center text-xs text-slate-700 mt-6">myTsundoku — personal reading tracker</p>
       </div>
 
       <style>{`

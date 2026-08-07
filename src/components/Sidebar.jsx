@@ -65,7 +65,7 @@ export default function Sidebar({ activePage, onNavigate }) {
           style={{ background: 'linear-gradient(135deg, #b9a6f5, #6a49c4)' }}>
           屋
         </div>
-        myManhwa
+        myTsundoku
       </div>
 
       {/* Nav */}
