@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from 'react'
 import { supabase } from './supabase'
+import { clearMatureLock } from './matureContext'
 
 const ADMIN_USER = 'xoloreiii'
 const ADMIN_PASS = 'xoloreiii913'
@@ -12,6 +13,7 @@ export function AuthProvider({ children }) {
 
   const loginAdmin = (username, password) => {
     if (username === ADMIN_USER && password === ADMIN_PASS) {
+      clearMatureLock() // fresh session — admin isn't gated, but keep state clean
       setUser({ role: 'admin', username })
       return true
     }
@@ -24,11 +26,15 @@ export function AuthProvider({ children }) {
     try {
       await supabase.from('guest_log').insert([{ name: trimmed }])
     } catch (_) { /* non-blocking */ }
+    clearMatureLock() // every new guest login must re-enter the access code
     setUser({ role: 'guest', username: trimmed })
     return true
   }
 
-  const logout = () => setUser(null)
+  const logout = () => {
+    clearMatureLock() // next person to log in on this device starts locked
+    setUser(null)
+  }
 
   const isAdmin = user?.role === 'admin'
   const isGuest = user?.role === 'guest'

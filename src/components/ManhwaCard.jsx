@@ -2,6 +2,22 @@ import { useState, useRef, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 
+// Same purple lock used in the "Restricted Content" unlock popup — keeps the
+// locked-card overlay visually consistent instead of using the OS emoji lock.
+function LockIcon({ className }) {
+  return (
+    <svg viewBox="0 0 64 64" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="28" width="24" height="22" rx="5" fill="#7c5cbf" />
+      <rect x="21" y="29" width="22" height="20" rx="4" fill="#9b7de8" />
+      <path d="M22 28v-8a10 10 0 0120 0v8" stroke="#5a3fa0" strokeWidth="3.5" strokeLinecap="round" fill="none"/>
+      <path d="M23 28v-8a9 9 0 0118 0v8" stroke="#b9a6f5" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.6"/>
+      <circle cx="32" cy="37" r="4" fill="#5a3fa0"/>
+      <rect x="30.5" y="39" width="3" height="5" rx="1.5" fill="#5a3fa0"/>
+      <ellipse cx="26" cy="32" rx="3" ry="2" fill="white" opacity="0.12" transform="rotate(-20 26 32)"/>
+    </svg>
+  )
+}
+
 const CATEGORY_BADGE = { NL: 'badge-nl', BL: 'badge-bl', GL: 'badge-gl' }
 
 const FLAG_STYLE = {
@@ -90,9 +106,9 @@ export default function ManhwaCard({ manhwa, onEdit, onDeleted, blurred = false,
           {/* lock overlay */}
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2"
             style={{ background: 'rgba(10,8,24,0.65)' }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg"
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center"
               style={{ background: 'rgba(138,106,224,0.25)', border: '1px solid rgba(185,166,245,0.3)' }}>
-              🔒
+              <LockIcon className="w-5 h-5" />
             </div>
             <p className="text-[11px] text-slate-400 font-medium text-center px-2 leading-tight">
               Enter code<br />to view

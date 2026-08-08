@@ -24,8 +24,8 @@ const FLAGS = [
 
 export const PRESET_GENRES = [
   'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Harem',
-  'Historical', 'Horror', 'Isekai', 'Martial Arts', 'Mature',
-  'Mystery', 'Office Life', 'Psychological', 'Romance', 'School Life',
+  'Historical', 'Horror', 'Hunterverse', 'Isekai', 'Martial Arts', 'Mature',
+  'Mystery', 'Office Life', 'Omegaverse', 'Psychological', 'Romance', 'School Life',
   'Sci-Fi', 'Slice of Life', 'Smut', 'Sports', 'Supernatural', 'Thriller',
 ]
 

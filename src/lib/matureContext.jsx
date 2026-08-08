@@ -1,7 +1,13 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 
-const MATURE_KEY  = 'mature_unlocked'
+export const MATURE_KEY  = 'mature_unlocked'
 const CORRECT_PWD = 'xoloreiii913'
+
+// Called from authContext on every guest login and on logout, so the code
+// prompt is tied to the login session — not just to the open browser tab.
+export function clearMatureLock() {
+  sessionStorage.removeItem(MATURE_KEY)
+}
 
 const MatureContext = createContext(null)
 
